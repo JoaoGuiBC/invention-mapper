@@ -50,7 +50,6 @@ const props = Astro.props
     const inputErrors = isInputError(error) ? error.fields : {}
 
     if (typeof data === "string") {
-      console.log(`FEZES: ${data}`)
       form.reset()
       submitButton.setAttribute("data-is-loading", "false")
 

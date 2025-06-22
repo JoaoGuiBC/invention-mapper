@@ -111,8 +111,6 @@ export const prerender = false
     const formData = new FormData(form)
     formData.append("id", invention!.id)
 
-    // formData.forEach((cu) => console.log(cu))
-
     const { data, error } = await actions.updateInvention(formData)
 
     if (typeof data === "string") {
@@ -127,8 +125,6 @@ export const prerender = false
 
     // CLEAN ALL INPUT ERRORS BEFORE CHECKING FOR THEM
     const inputErrors = isInputError(error) ? error.fields : {}
-
-    console.log(inputErrors)
 
     form.querySelectorAll(".input-container").forEach((input) => {
       input.setAttribute("data-errored", "false")

@@ -1,11 +1,11 @@
 ---
-import type { HTMLAttributes } from "astro/types";
+import type { HTMLAttributes } from "astro/types"
 
 interface Props extends HTMLAttributes<"input"> {
-  title: string;
+  title: string
 }
 
-const { title, id, ...rest } = Astro.props;
+const { title, id, ...rest } = Astro.props
 ---
 
 <input-container
@@ -32,18 +32,18 @@ const { title, id, ...rest } = Astro.props;
       /// CHECK IF INPUT STATE IS SET AS ERROR
       const observer = new MutationObserver(() => {
         if (!this.dataset.errorMessage) {
-          this.querySelector("p")?.classList.add("hidden");
+          this.querySelector("p")?.classList.add("hidden")
         } else {
-          const errorText = this.querySelector("p") as HTMLParagraphElement;
+          const errorText = this.querySelector("p") as HTMLParagraphElement
 
-          errorText.textContent = this.dataset.errorMessage;
-          errorText.classList.remove("hidden");
+          errorText.textContent = this.dataset.errorMessage
+          errorText.classList.remove("hidden")
         }
-      });
+      })
 
-      observer.observe(this, { attributes: true });
+      observer.observe(this, { attributes: true })
     }
   }
 
-  customElements.define("input-container", InputContainer);
+  customElements.define("input-container", InputContainer)
 </script>

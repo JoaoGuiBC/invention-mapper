@@ -1,5 +1,3 @@
-import type { Invention } from '@store'
-
 import { api } from '../api'
 
 interface UpdateInventionRequest {
