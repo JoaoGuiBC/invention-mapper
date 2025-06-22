@@ -1,0 +1,51 @@
+---
+import type { HTMLAttributes } from "astro/types"
+import CircleNotch from "phosphor-astro/CircleNotch.astro"
+
+interface Props extends HTMLAttributes<"button"> {
+  isLoading?: boolean
+  styleType?: "primary" | "secondary"
+  colorType?: "green" | "red"
+}
+
+const { styleType = "primary", colorType = "green", isLoading = false, ...rest } = Astro.props
+
+enum COLORS {
+  green = "bg-tertiary from-tertiary from-55% via-detail-green via-90% to-primary",
+  red = "bg-detail-red from-detail-red from-55% via-error-dimmed via-90% to-primary",
+}
+
+const STYLES = {
+  primary: `flex py-2 h-fit px-3 rounded-md font-text font-medium drop-shadow-sm cursor-pointer transition-all hover:drop-shadow-black/48 hover:bg-linear-120 ${COLORS[colorType]}`,
+  secondary:
+    "flex h-fit p-1 items-center justify-center text-dark font-text align-middle font-medium text-shadow-lg/18 cursor-pointer transition-all hover:text-shadow-lg/32",
+}
+---
+
+<custom-button class={STYLES[styleType]} {...rest}>
+  <div id="slot-container">
+    <slot />
+  </div>
+  <CircleNotch id="spinner" class="size-6 animate-spin hidden" />
+</custom-button>
+
+<script>
+  class CustomButton extends HTMLElement {
+    connectedCallback() {
+      /// CHECK IF BUTTON IS IN LOADING STATE
+      const observer = new MutationObserver(() => {
+        if (this.dataset.isLoading === "true") {
+          this.querySelector("#slot-container")?.classList.add("hidden")
+          this.querySelector("#spinner")?.classList.remove("hidden")
+        } else {
+          this.querySelector("#slot-container")?.classList.remove("hidden")
+          this.querySelector("#spinner")?.classList.add("hidden")
+        }
+      })
+
+      observer.observe(this, { attributes: true })
+    }
+  }
+
+  customElements.define("custom-button", CustomButton)
+</script>

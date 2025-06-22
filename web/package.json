@@ -1,0 +1,30 @@
+{
+  "name": "web",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@nanostores/persistent": "^1.0.0",
+    "@tailwindcss/vite": "^4.1.4",
+    "@tanstack/query-core": "^5.76.0",
+    "@types/react-dom": "^19.1.2",
+    "astro": "^5.8.0",
+    "astro-cloudinary": "^1.3.2",
+    "ky": "^1.8.1",
+    "leaflet": "^1.9.4",
+    "nanostores": "^1.0.1",
+    "phosphor-astro": "^2.1.0",
+    "tailwindcss": "^4.1.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@types/leaflet": "^1.9.17",
+    "prettier": "^3.5.3",
+    "prettier-plugin-astro": "^0.14.1"
+  }
+}

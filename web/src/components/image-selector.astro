@@ -1,0 +1,62 @@
+---
+import type { HTMLAttributes } from "astro/types"
+
+interface Props extends HTMLAttributes<"input"> {}
+
+const { id, ...rest } = Astro.props
+---
+
+<image-selector-container
+  id={`${id}-container`}
+  class="input-container relative flex flex-col items-center justify-center h-12 w-60 rounded-lg border-2 border-detail-green bg-primary bg-cover bg-center data-[errored=true]:mb-0.5 data-[errored=true]:border-error"
+>
+  <label
+    for={id}
+    class="font-text flex items-center justify-center bg-primary/35 font-medium text-sm/tight h-full w-full cursor-pointer rounded-lg backdrop-blur-sm"
+  >
+    <slot />
+  </label>
+
+  <input type="file" accept="image/*" name="file" id={id} class="fixed opacity-0 -z-10" {...rest} />
+  <p class="absolute text-xs text-error font-medium bottom-0 translate-y-full left-3 hidden"></p>
+</image-selector-container>
+
+<script>
+  class ImageSelectorContainer extends HTMLElement {
+    connectedCallback() {
+      const container = document.querySelector("image-selector-container") as HTMLElement
+      const input = this.querySelector("input") as HTMLInputElement
+
+      /// ADD IMAGE AS INPUT BACKGROUND
+      input.addEventListener(
+        "change",
+        async () => {
+          if (!input.files?.[0]) return
+
+          let fileReader = new FileReader()
+          fileReader.readAsDataURL(input.files[0])
+          fileReader.onload = () => {
+            container.setAttribute("style", `background-image: url('${fileReader.result}')`)
+          }
+        },
+        false
+      )
+
+      /// CHECK IF INPUT STATE IS SET AS ERROR
+      const observer = new MutationObserver(() => {
+        if (!this.dataset.errorMessage) {
+          this.querySelector("p")?.classList.add("hidden")
+        } else {
+          const errorText = this.querySelector("p") as HTMLParagraphElement
+
+          errorText.textContent = this.dataset.errorMessage
+          errorText.classList.remove("hidden")
+        }
+      })
+
+      observer.observe(this, { attributes: true })
+    }
+  }
+
+  customElements.define("image-selector-container", ImageSelectorContainer)
+</script>

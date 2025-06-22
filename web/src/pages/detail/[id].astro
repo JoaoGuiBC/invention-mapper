@@ -1,0 +1,170 @@
+---
+import { Image } from "astro:assets"
+
+import { CLOUDINARY_IMAGES_FOLDER, PUBLIC_CLOUDINARY_CLOUD_NAME } from "astro:env/server"
+
+import Layout from "@layouts/Layout.astro"
+
+import Button from "@components/button.astro"
+import ImageSelector from "@components/image-selector.astro"
+import Input from "@components/input.astro"
+import Textarea from "@components/textarea.astro"
+
+const imagesFolder = CLOUDINARY_IMAGES_FOLDER ? `${CLOUDINARY_IMAGES_FOLDER}/` : ""
+
+export const prerender = false
+---
+
+<Layout>
+  <form
+    id="update-form"
+    enctype="multipart/form-data"
+    class="flex flex-col min-h-full w-full max-w-2/3 mx-auto pt-2"
+  >
+    <Image
+      id="invention-image"
+      transition:name="invention-image"
+      class="rounded-2xl w-full max-h-56 object-cover object-center"
+      data-folder-name={imagesFolder}
+      data-cloud-name={PUBLIC_CLOUDINARY_CLOUD_NAME}
+      src="https://placehold.co/1000x224"
+      width={1000}
+      height={224}
+      alt="<Description>"
+      loading="eager"
+    />
+
+    <div class="flex w-full gap-2 mt-6">
+      <Input title="NOME" id="name" name="name" />
+
+      <ImageSelector id="file" name="file">
+        DESEJA ATUALIZAR A <br /> IMAGEM DA INVENÇÃO?
+      </ImageSelector>
+    </div>
+
+    <Textarea size="large" title="INFORMAÇÃO SOBRE A INVENÇÃO" id="text" name="text" />
+    <Input title="LINK DE REFERENCIA" id="external_link" name="external_link" />
+
+    <h3 class="font-title text-md font-normal mt-4 mb-2 z-50">Localização</h3>
+
+    <div class="flex w-full gap-2">
+      <Input type="number" step="any" title="LATITUDE" id="lat" name="lat" />
+      <Input type="number" step="any" title="LONGITUDE" id="lon" name="lon" />
+    </div>
+
+    <div class="flex items-center justify-end gap-2 mt-8 w-full z-20">
+      <a href="/">
+        <Button id="return-to-map-button" type="button" styleType="secondary">VOLTAR</Button>
+      </a>
+      <Button id="update-button" type="submit" styleType="primary">SALVAR</Button>
+      <Button id="delete-button" type="submit" styleType="primary" colorType="red">DELETAR</Button>
+    </div>
+  </form>
+</Layout>
+
+<script>
+  import { navigate } from "astro:transitions/client"
+
+  import { activeInvention, toastInfo } from "@store"
+
+  const invention = activeInvention.get()
+
+  if (!invention) {
+    navigate("/", { history: "replace" })
+  }
+
+  /// SET INVENTION DATA
+  const inventionImage = document.getElementById("invention-image") as HTMLImageElement
+
+  const imagesFolder = inventionImage.getAttribute("data-folder-name")
+  const cloudName = inventionImage.getAttribute("data-cloud-name")
+  inventionImage.src = `https://res.cloudinary.com/${cloudName}/image/upload/c_auto,g_auto,h_224//v1749063085/${imagesFolder}${invention!.id}.png`
+  inventionImage.alt = `an example of ${invention!.name}`
+
+  for (const [key, value] of Object.entries(invention!)) {
+    if (key === "id" || key === "file") continue
+
+    if (key === "text") {
+      const textarea = document.querySelector(`textarea#${key}`) as HTMLTextAreaElement
+      textarea.value = value
+
+      continue
+    }
+
+    const input = document.querySelector(`input#${key}`) as HTMLInputElement
+    input.value = value
+  }
+
+  /// UPDATE INVENTION
+  const form = document.querySelector("form#update-form") as HTMLFormElement
+  const submitButton = document.querySelector("custom-button#update-button") as HTMLButtonElement
+
+  submitButton.addEventListener("click", () => {
+    form.requestSubmit()
+  })
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault()
+
+    submitButton.setAttribute("data-is-loading", "true")
+
+    const formData = new FormData(form)
+    formData.append("id", invention!.id)
+
+    // formData.forEach((cu) => console.log(cu))
+
+    const { data, error } = await actions.updateInvention(formData)
+
+    if (typeof data === "string") {
+      submitButton.setAttribute("data-is-loading", "false")
+
+      const toastType = data.includes("INVENÇÃO EDITADA COM SUCESSO") ? "success" : "error"
+
+      toastInfo.set({ type: toastType, message: data })
+
+      return
+    }
+
+    // CLEAN ALL INPUT ERRORS BEFORE CHECKING FOR THEM
+    const inputErrors = isInputError(error) ? error.fields : {}
+
+    console.log(inputErrors)
+
+    form.querySelectorAll(".input-container").forEach((input) => {
+      input.setAttribute("data-errored", "false")
+      input.setAttribute("data-error-message", "")
+    })
+
+    Object.entries(inputErrors).forEach((error) => {
+      const input = form.querySelector(`#${error[0]}-container`)
+
+      input?.setAttribute("data-errored", "true")
+      input?.setAttribute("data-error-message", error[1][0])
+    })
+
+    submitButton.setAttribute("data-is-loading", "false")
+  })
+
+  /// DELETE INVENTION
+  import { deleteInvention } from "@http/delete-invention"
+  import { actions } from "astro:actions"
+  import { isInputError } from "astro:actions"
+
+  const deleteButton = document.getElementById("delete-button") as HTMLButtonElement
+
+  deleteButton.addEventListener("click", async () => {
+    deleteButton.setAttribute("data-is-loading", "true")
+
+    const result = await deleteInvention({ id: invention!.id })
+
+    if (result.includes("INVENÇÃO DELETADA COM SUCESSO")) {
+      toastInfo.set({ type: "success", message: result })
+
+      return navigate("/", { history: "replace" })
+    } else {
+      toastInfo.set({ type: "error", message: result })
+    }
+
+    deleteButton.setAttribute("data-is-loading", "false")
+  })
+</script>

@@ -1,0 +1,25 @@
+---
+import Layout from "@layouts/Layout.astro"
+
+import Article from "@components/article.astro"
+import InsertInventionDialog from "@components/insert-invention-dialog/index.astro"
+import Maps from "@components/map/map.astro"
+---
+
+<Layout>
+  <div class="flex w-screen h-screen relative bg-white z-20">
+    <Maps />
+
+    <InsertInventionDialog />
+
+    <Article />
+  </div>
+</Layout>
+
+<script>
+  import { inventionList } from "@store"
+  import { listInventions } from "@http/list-inventions"
+
+  const inventions = await listInventions()
+  inventionList.set(inventions)
+</script>

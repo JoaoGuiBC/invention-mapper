@@ -1,0 +1,80 @@
+---
+import CheckCircle from "phosphor-astro/CheckCircle.astro"
+import WarningCircle from "phosphor-astro/WarningCircle.astro"
+---
+
+<toast-container
+  aria-hidden="true"
+  class="animate-toast-enter aria-hidden:animate-toast-leave group fixed bottom-2.5 right-2.5 hidden items-center justify-center gap-2 w-fit max-w-96 p-2 data-[type=error]:bg-error-dimmed bg-success-dimmed drop-shadow-sm rounded-md z-50"
+>
+  <CheckCircle aria-hidden id="check-icon-toast" class="max-w-8 text-success hidden" />
+  <WarningCircle aria-hidden id="warning-icon-toast" class="max-w-8 text-error hidden" />
+  <span
+    id="toast-message"
+    class="font-text select-none cursor-default text-lg group-[data-type=success]:text-success group-[data-type=error]:text-error"
+  ></span>
+</toast-container>
+
+<script>
+  import { toastInfo } from "@store"
+
+  class ToastContainer extends HTMLElement {
+    connectedCallback() {
+      const observer = new MutationObserver((mutations) => {
+        const messageUpdated = mutations.map((mutation) => mutation.attributeName).includes("data-message")
+        const typeUpdated = mutations.map((mutation) => mutation.attributeName).includes("data-message")
+        const toastVisible = mutations
+          .map((mutation) => mutation.attributeName)
+          .includes("data-toast-visible")
+
+        if (this.dataset.message && messageUpdated) {
+          this.querySelector("span")!.innerText = this.dataset.message
+        }
+
+        if (this.dataset.type && typeUpdated) {
+          if (this.dataset.type === "error") {
+            this.querySelector("#check-icon-toast")!.ariaHidden = "true"
+            this.querySelector("#check-icon-toast")!.classList.add("hidden")
+
+            this.querySelector("#warning-icon-toast")!.ariaHidden = "false"
+            this.querySelector("#warning-icon-toast")!.classList.remove("hidden")
+          } else {
+            this.querySelector("#check-icon-toast")!.ariaHidden = "false"
+            this.querySelector("#check-icon-toast")!.classList.remove("hidden")
+
+            this.querySelector("#warning-icon-toast")!.ariaHidden = "true"
+            this.querySelector("#warning-icon-toast")!.classList.add("hidden")
+          }
+        }
+
+        if (toastVisible && this.dataset.toastVisible) {
+          if (this.dataset.toastVisible === "true") {
+            this.ariaHidden = "false"
+            this.classList.remove("hidden")
+            this.classList.add("flex")
+
+            setTimeout(() => hideToast(this), 5000)
+
+            return
+          }
+
+          this.ariaHidden = "true"
+          this.classList.remove("flex")
+          this.classList.add("hidden")
+        }
+      })
+
+      function hideToast(toast: HTMLElement) {
+        toast.ariaHidden = "true"
+        setTimeout(() => {
+          toast.setAttribute("data-toast-visible", "false")
+          toastInfo.set(undefined)
+        }, 0.13 * 1000)
+      }
+
+      observer.observe(this, { attributes: true })
+    }
+  }
+
+  customElements.define("toast-container", ToastContainer)
+</script>

@@ -1,0 +1,95 @@
+---
+import "./styles.css"
+
+import { CLOUDINARY_IMAGES_FOLDER, PUBLIC_CLOUDINARY_CLOUD_NAME } from "astro:env/server"
+
+const imagesFolder = CLOUDINARY_IMAGES_FOLDER ? `${CLOUDINARY_IMAGES_FOLDER}/` : ""
+---
+
+<div
+  id="map"
+  data-folder-name={imagesFolder}
+  data-cloud-name={PUBLIC_CLOUDINARY_CLOUD_NAME}
+  class="w-screen h-screen fixed"
+>
+</div>
+
+<script>
+  import L from "leaflet"
+
+  import { inventionList, activeInvention, isArticleHidden, newInventionCoordinates } from "@store"
+
+  const container = document.getElementById("map")!
+  const imagesFolder = container.getAttribute("data-folder-name")
+  const cloudName = container.getAttribute("data-cloud-name")
+
+  let map: L.Map | null = null
+  let tempMarker: L.Marker<any> | null
+  let groupMarkers = L.layerGroup()
+
+  const tiles = L.tileLayer(
+    "https://tile.thunderforest.com/pioneer/{z}/{x}/{y}.png?apikey=b0ac6ea14e3b4c1f976a137fd163ff3e"
+  )
+  const bounds = new L.LatLngBounds(new L.LatLng(-90, -180), new L.LatLng(90, 180))
+
+  function createMarkers() {
+    const inventions = inventionList.get()
+    groupMarkers.eachLayer((layer) => layer.remove())
+
+    for (const item of inventions) {
+      const icon = L.icon({
+        iconUrl: `https://res.cloudinary.com/${cloudName}/image/upload/ar_1:1,c_auto,g_auto,w_500/r_max//v1749063085/${imagesFolder}${item.id}.png`,
+        shadowUrl: "icon-shadow.png",
+        iconSize: [46, 46],
+        shadowSize: [48, 48],
+        iconAnchor: [23, 23],
+        shadowAnchor: [23, 23],
+      })
+
+      const marker = L.marker([item.lat, item.lon], { icon }).addTo(groupMarkers)
+
+      marker.addEventListener("click", () => {
+        activeInvention.set(item)
+        isArticleHidden.set(false)
+      })
+    }
+  }
+
+  inventionList.subscribe(() => createMarkers())
+
+  newInventionCoordinates.subscribe((coords) => {
+    tempMarker?.remove()
+
+    if (!coords || !map) return
+
+    tempMarker = L.marker({ lat: coords.lat, lng: coords.lon }).addTo(map)
+  })
+
+  function onMapClick(e: L.LeafletMouseEvent) {
+    newInventionCoordinates.set({ lat: e.latlng.lat, lon: e.latlng.lng })
+  }
+
+  document.addEventListener("astro:page-load", async () => {
+    const currentPath = window.location.pathname
+
+    if (currentPath === "/") {
+      if (map) {
+        map.eachLayer((layer) => layer.remove())
+        map.remove()
+      }
+
+      map = L.map("map", {
+        center: bounds.getCenter(),
+        maxZoom: 16,
+        minZoom: 3,
+        maxBounds: bounds,
+        maxBoundsViscosity: 0.8,
+        layers: [tiles],
+      }).setView(bounds.getCenter(), 3)
+
+      groupMarkers.addTo(map)
+
+      map.on("click", onMapClick)
+    }
+  })
+</script>

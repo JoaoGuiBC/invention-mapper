@@ -1,0 +1,107 @@
+---
+import type { HTMLAttributes } from "astro/types"
+
+import ImageSelector from "../image-selector.astro"
+import Input from "../input.astro"
+import Textarea from "../textarea.astro"
+
+interface Props extends HTMLAttributes<"form"> {}
+
+const props = Astro.props
+---
+
+<form
+  id="manual-insert-form"
+  class="flex flex-col w-full items-center"
+  enctype="multipart/form-data"
+  {...props}
+>
+  <div class="flex w-full gap-2">
+    <Input title="NOME" id="manual-form-name" name="name" />
+
+    <ImageSelector id="manual-form-file" name="file">ENVIE UMA IMAGEM<br />DA INVENÇÃO</ImageSelector>
+  </div>
+
+  <Textarea title="INFORMAÇÃO SOBRE A INVENÇÃO" id="manual-form-text" name="text" />
+  <Input title="LINK DE REFERENCIA" id="manual-form-external_link" name="external_link" />
+
+  <h3 class="font-title text-md font-normal mt-4 mb-2 z-50">Localização</h3>
+
+  <div class="flex w-full gap-2">
+    <Input type="number" step="any" title="LATITUDE" id="manual-form-lat" name="lat" />
+    <Input type="number" step="any" title="LONGITUDE" id="manual-form-lon" name="lon" />
+  </div>
+</form>
+
+<script>
+  import { actions, isInputError } from "astro:actions"
+
+  import { newInventionCoordinates, inventionList, toastInfo } from "@store"
+
+  /// HANDLE FORM SUBMIT
+  const form = document.querySelector("form#manual-insert-form") as HTMLFormElement
+  const submitButton = document.querySelector("custom-button#submit-button") as HTMLButtonElement
+  const formMessage = document.querySelector("span#form-message") as HTMLSpanElement
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault()
+
+    submitButton.setAttribute("data-is-loading", "true")
+
+    formMessage.ariaHidden = "false"
+    formMessage.innerText = "SALVANDO DADOS, POR FAVOR AGUARDE."
+
+    const formData = new FormData(form)
+    const { data, error } = await actions.insertInvention(formData)
+
+    const inputErrors = isInputError(error) ? error.fields : {}
+
+    if (typeof data === "string") {
+      form.reset()
+      submitButton.setAttribute("data-is-loading", "false")
+
+      formMessage.ariaHidden = "true"
+      formMessage.innerText = ""
+
+      toastInfo.set({ type: "error", message: data })
+
+      return
+    }
+
+    if (data) {
+      const inventions = inventionList.get()
+      inventionList.set([...inventions, data])
+
+      const imageInput = form.querySelector("image-selector-container") as Element
+      imageInput.setAttribute("style", `background-image: none`)
+
+      form.reset()
+      submitButton.setAttribute("data-is-loading", "false")
+
+      formMessage.ariaHidden = "true"
+      formMessage.innerText = ""
+
+      toastInfo.set({ type: "success", message: `${data.name} ADICIONADO A LISTA DE INVENÇÕES COM SUCESSO` })
+
+      return newInventionCoordinates.set(null)
+    }
+
+    // CLEAN ALL INPUT ERRORS BEFORE CHECKING FOR THEM
+    form.querySelectorAll(".input-container").forEach((input) => {
+      input.setAttribute("data-errored", "false")
+      input.setAttribute("data-error-message", "")
+    })
+
+    Object.entries(inputErrors).forEach((error) => {
+      const input = form.querySelector(`#manual-form-${error[0]}-container`)
+
+      input?.setAttribute("data-errored", "true")
+      input?.setAttribute("data-error-message", error[1][0])
+    })
+
+    submitButton.setAttribute("data-is-loading", "false")
+
+    formMessage.ariaHidden = "true"
+    formMessage.innerText = ""
+  })
+</script>

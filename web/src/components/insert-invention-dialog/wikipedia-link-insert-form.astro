@@ -1,0 +1,98 @@
+---
+import type { HTMLAttributes } from "astro/types"
+
+import Input from "../input.astro"
+
+interface Props extends HTMLAttributes<"form"> {}
+
+const props = Astro.props
+---
+
+<form
+  id="wikipedia-link-insert-form"
+  class="hidden flex-col w-full items-center"
+  enctype="multipart/form-data"
+  {...props}
+>
+  <Input title="LINK DA WIKIPÉDIA" id="wiki-form-wikipedia_link" name="wikipedia_link" />
+
+  <h3 class="font-title text-md font-normal mt-4 mb-2 z-50">Localização</h3>
+
+  <div class="flex w-full gap-2">
+    <Input type="number" step="any" title="LATITUDE" id="wiki-form-lat" name="lat" />
+    <Input type="number" step="any" title="LONGITUDE" id="wiki-form-lon" name="lon" />
+  </div>
+</form>
+
+<script>
+  import { actions, isInputError } from "astro:actions"
+
+  import { newInventionCoordinates, inventionList, toastInfo } from "@store"
+
+  const form = document.querySelector("form#wikipedia-link-insert-form") as HTMLFormElement
+
+  /// HANDLE FORM SUBMIT
+  const submitButton = document.querySelector("custom-button#submit-button") as HTMLButtonElement
+  const formMessage = document.querySelector("span#form-message") as HTMLSpanElement
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault()
+
+    submitButton.setAttribute("data-is-loading", "true")
+
+    formMessage.ariaHidden = "false"
+    formMessage.innerText =
+      "PROCESSANDO DADOS DA WIKIPEDIA, ISSO PODE LEVAR ALGUNS MINUTOS, POR FAVOR AGUARDE."
+
+    const formData = new FormData(form)
+    const { data, error } = await actions.insertInventionWithWiki(formData)
+
+    const inputErrors = isInputError(error) ? error.fields : {}
+
+    if (typeof data === "string") {
+      console.log(`FEZES: ${data}`)
+      form.reset()
+      submitButton.setAttribute("data-is-loading", "false")
+
+      formMessage.ariaHidden = "true"
+      formMessage.innerText = ""
+
+      toastInfo.set({ type: "error", message: data })
+
+      return
+    }
+
+    if (data) {
+      const inventions = inventionList.get()
+      inventionList.set([...inventions, data])
+
+      form.reset()
+      submitButton.setAttribute("data-is-loading", "false")
+
+      formMessage.ariaHidden = "true"
+      formMessage.innerText = ""
+
+      toastInfo.set({ type: "success", message: `${data.name} ADICIONADO A LISTA DE INVENÇÕES COM SUCESSO` })
+
+      return newInventionCoordinates.set(null)
+    }
+
+    // CLEAN ALL INPUT ERRORS BEFORE CHECKING FOR THEM
+    form.querySelectorAll(".input-container").forEach((input) => {
+      input.setAttribute("data-errored", "false")
+      input.setAttribute("data-error-message", "")
+    })
+
+    Object.entries(inputErrors).forEach((error) => {
+      const input = form.querySelector(`#wiki-form-${error[0]}-container`)
+
+      input?.setAttribute("data-errored", "true")
+      input?.setAttribute("data-error-message", error[1][0])
+    })
+
+    submitButton.setAttribute("data-is-loading", "false")
+
+    formMessage.ariaHidden = "true"
+    formMessage.innerText = ""
+  })
+</script>

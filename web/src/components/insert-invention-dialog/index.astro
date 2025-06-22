@@ -1,0 +1,112 @@
+---
+import Button from "@components/button.astro"
+import Switch from "@components/switch.astro"
+
+import ManualInsertForm from "./manual-insert-form.astro"
+import WikipediaLinkInsertForm from "./wikipedia-link-insert-form.astro"
+---
+
+<dialog
+  transition:persist
+  transition:name="dialog"
+  aria-modal="true"
+  id="new-invention-dialog"
+  class="animate-dialog-enter data-[is-hidden=true]:animate-dialog-leave fixed right-0 bottom-1/2 translate-y-1/2 start-[unset] bg-primary w-lg px-2.5 py-4 rounded-l-2xl border-4 border-r-0 border-detail-beige drop-shadow-md drop-shadow-dark/75 z-50"
+>
+  <header class="flex justify-between px-2 mb-2 w-full">
+    <h1 class="font-title text-xl">Inserir nova invenção</h1>
+    <Switch id="form-type-switch" leftText="inserção \n manual" rightText="link da \n wikipedia" />
+  </header>
+
+  <ManualInsertForm />
+  <WikipediaLinkInsertForm hidden />
+
+  <div class="flex items-center gap-2 mt-8 w-full z-20">
+    <span
+      id="form-message"
+      aria-hidden="true"
+      class="inline-flex items-center mr-auto select-none cursor-default"></span>
+
+    <Button id="close-dialog-button" type="button" styleType="secondary">FECHAR</Button>
+    <Button id="submit-button" type="submit" styleType="primary">SALVAR</Button>
+  </div>
+
+  <div
+    aria-hidden="true"
+    class="absolute z-50 bg-transparent -right-[3.5px] -top-[calc(3.90px+2.75rem)] h-12 w-7 rounded-br-full shadow-primary shadow-rounded-corners-dialog-top border-r-4 border-b-4 border-detail-beige"
+  >
+  </div>
+  <div
+    aria-hidden="true"
+    class="absolute -z-10 bg-transparent -right-[3.5px] top-full h-12 w-7 rounded-tr-full shadow-primary shadow-rounded-corners-dialog-bottom border-r-4 border-t-4 border-detail-beige"
+  >
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.getElementById("new-invention-dialog") as HTMLDialogElement | null
+
+  const submitButton = document.querySelector("custom-button#submit-button") as HTMLButtonElement
+  const manualForm = document.getElementById("manual-insert-form") as HTMLFormElement
+  const wikiLinkForm = document.getElementById("wikipedia-link-insert-form") as HTMLFormElement
+
+  /// FORM SUBMISSION
+  submitButton.addEventListener("click", () => {
+    if (manualForm.hidden === true) {
+      wikiLinkForm.requestSubmit()
+    } else {
+      manualForm.requestSubmit()
+    }
+  })
+
+  /// HANDLE FORM TYPE
+  const switchButton = document.getElementById("form-type-switch") as HTMLInputElement
+
+  switchButton.addEventListener("change", (e) => {
+    manualForm.hidden = switchButton.checked
+    manualForm.ariaHidden = String(switchButton.checked)
+
+    wikiLinkForm.hidden = !switchButton.checked
+    wikiLinkForm.ariaHidden = String(switchButton.checked)
+
+    if (switchButton.checked) {
+      manualForm.classList.add("hidden")
+      wikiLinkForm.classList.remove("hidden")
+    } else {
+      manualForm.classList.remove("hidden")
+      wikiLinkForm.classList.add("hidden")
+    }
+  })
+
+  /// HANDLE DIALOG VISIBILITY
+  import { newInventionCoordinates } from "@store"
+
+  const closeDialog = document.getElementById("close-dialog-button") as HTMLButtonElement | null
+
+  const latInput = document.querySelectorAll('input[name="lat"]') as NodeListOf<HTMLInputElement>
+  const lonInput = document.querySelectorAll('input[name="lon"]') as NodeListOf<HTMLInputElement>
+
+  newInventionCoordinates.subscribe((coords) => {
+    if (!dialog) return
+
+    const isDialogOpen = coords !== null
+    dialog.dataset.isHidden = `${!isDialogOpen}`
+
+    if (!isDialogOpen) {
+      setTimeout(() => dialog.close(), 0.13 * 1000)
+
+      return
+    }
+
+    dialog.show()
+
+    if (coords && latInput.length > 0 && lonInput.length > 0) {
+      latInput.forEach((input) => (input.value = `${coords.lat}`))
+      lonInput.forEach((input) => (input.value = `${coords.lon}`))
+    }
+  })
+
+  closeDialog?.addEventListener("click", () => {
+    newInventionCoordinates.set(null)
+  })
+</script>

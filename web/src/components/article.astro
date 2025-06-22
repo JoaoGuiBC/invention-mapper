@@ -1,0 +1,111 @@
+---
+import { Image } from "astro:assets"
+import type { HTMLAttributes } from "astro/types"
+
+import { CLOUDINARY_IMAGES_FOLDER, PUBLIC_CLOUDINARY_CLOUD_NAME } from "astro:env/server"
+
+import Button from "./button.astro"
+
+const imagesFolder = CLOUDINARY_IMAGES_FOLDER ? `${CLOUDINARY_IMAGES_FOLDER}/` : ""
+
+interface Props extends HTMLAttributes<"article"> {}
+
+const { ...props } = Astro.props
+---
+
+<article
+  id="article-container"
+  hidden
+  class="animate-article-enter aria-hidden:animate-article-leave flex flex-col fixed bottom-0 left-1/2 -translate-x-1/2 bg-primary w-xl max-w-screen max-h-3/4 px-2.5 py-4 rounded-t-2xl text-justify border-4 border-b-0 border-detail-beige drop-shadow-md drop-shadow-dark z-10 will-change-[filter]"
+  {...props}
+>
+  <h1 id="article-title" class="font-title text-xl"></h1>
+
+  <Image
+    id="invention-image"
+    transition:name="invention-image"
+    class="rounded-2xl w-full max-h-56 object-cover object-center"
+    data-folder-name={imagesFolder}
+    data-cloud-name={PUBLIC_CLOUDINARY_CLOUD_NAME}
+    src="https://placehold.co/224"
+    width={566}
+    height={224}
+    alt="<Description>"
+    loading="eager"
+  />
+
+  <div aria-hidden="true" class="w-11/12 mx-auto h-px mt-3.5 mb-1.5 bg-secondary"></div>
+
+  <span
+    id="article-content"
+    class="font-text font-medium text-lg/tight whitespace-pre-wrap px-3 overflow-y-auto"></span>
+
+  <div class="flex items-center gap-2 mt-8 w-full z-20">
+    <a id="read-more-link" class="flex items-center justify-center mr-auto" href="http://">
+      <strong>clique para ler mais</strong>
+    </a>
+    <Button id="close-article-button" type="button" styleType="secondary">FECHAR</Button>
+    <Button id="edit-invention-button" type="button" styleType="primary">EDITAR</Button>
+  </div>
+
+  <div
+    aria-hidden="true"
+    class="absolute -z-10 bg-transparent -left-12 bottom-0 h-7 w-12 rounded-br-full shadow-rounded-corners-article-left shadow-primary border-r-4 border-detail-beige"
+  >
+  </div>
+  <div
+    aria-hidden="true"
+    class="absolute -z-10 bg-transparent -right-12 bottom-0 h-7 w-12 rounded-bl-full shadow-rounded-corners-article-right shadow-primary border-l-4 border-detail-beige"
+  >
+  </div>
+</article>
+
+<script>
+  import { navigate } from "astro:transitions/client"
+  import { isArticleHidden, activeInvention } from "@store"
+
+  /// FILL ARTICLE WITH CONTENT
+  const articleTitle = document.getElementById("article-title")!
+  const articleContent = document.getElementById("article-content")!
+  const readMoreLink = document.getElementById("read-more-link") as HTMLAnchorElement
+  const inventionImage = document.getElementById("invention-image") as HTMLImageElement
+  const editInvention = document.getElementById("edit-invention-button")!
+
+  activeInvention.subscribe((invention) => {
+    if (!invention) return
+
+    readMoreLink.href = invention.external_link
+
+    articleTitle.innerText = invention.name
+    articleContent.innerText = invention.text
+
+    const imagesFolder = inventionImage.getAttribute("data-folder-name")
+    const cloudName = inventionImage.getAttribute("data-cloud-name")
+    inventionImage.src = `https://res.cloudinary.com/${cloudName}/image/upload/c_auto,g_auto,h_224//v1749063085/${imagesFolder}${invention.id}.png`
+    inventionImage.alt = `an example of ${invention.name}`
+
+    editInvention.addEventListener("click", () => {
+      navigate(`/detail/${invention.id}`, { history: "replace" })
+    })
+  })
+
+  /// HANDLE ARTICLE VISIBILITY
+  const article = document.getElementById("article-container")!
+  const closeButton = document.getElementById("close-article-button")!
+
+  function updateArticleVisibility(isHidden: boolean) {
+    article.hidden = isHidden
+  }
+
+  isArticleHidden.subscribe((isHidden) => {
+    if (isHidden) {
+      article.ariaHidden = `${isHidden}`
+      setTimeout(updateArticleVisibility, 0.13 * 1000, isHidden)
+    } else {
+      updateArticleVisibility(isHidden)
+      article.ariaHidden = `${isHidden}`
+    }
+  })
+
+  closeButton.addEventListener("click", () => isArticleHidden.set(true))
+</script>

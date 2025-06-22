@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #FEFAE0;
+  --color-secondary: #D4A373;
+  --color-tertiary: #CCD5AE;
+  --color-detail-green: #E9EDC9;
+  --color-detail-beige: #FAEDCD;
+  --color-detail-red: #F39B93;
+  --color-dark: #14080E;
+  --color-error: #F74646;
+  --color-error-dimmed: #FEE4E4;
+  --color-success: #36B375;
+  --color-success-dimmed: #F0FAF5;
+
+  --color-button-hover: linear-gradient(130deg,rgba(245, 222, 179, 1) 55%, rgba(200, 116, 87, 1) 90%, rgba(198, 93, 59, 1) 100%);
+
+  --shadow-rounded-corners-header: 0 -25px 0 0;
+  --shadow-rounded-corners-article-left: 25px 0 0 0;
+  --shadow-rounded-corners-article-right: -25px 0 0 0;
+  --shadow-rounded-corners-dialog-bottom: 0 -25px 0 0;
+  --shadow-rounded-corners-dialog-top: 0 25px 0 0;
+
+  --shadow-header: rgba(50, 50, 93, 0.1) 0px 13px 27px -5px, rgba(0, 0, 0, 0.1) 0px 8px 16px -8px;
+
+  --font-text: "EB Garamond", serif;
+  --font-title: "Girassol", serif;
+
+  --animate-article-enter: articleEnter .15s ease-out;
+  --animate-article-leave: articleLeave .15s ease-in-out;
+
+  --animate-dialog-enter: dialogEnter .15s ease-out;
+  --animate-dialog-leave: dialogLeave .15s ease-in-out;
+
+  --animate-toast-enter: toastEnter .15s ease-out;
+  --animate-toast-leave: toastLeave .15s ease-in-out;
+
+  @keyframes articleEnter {
+    0% { opacity: 0; transform: translateY(75%) scale(0.75, 1); filter: drop-shadow(0px 0px 0px transparent); }
+    90% { transform: scale(1.025, 1.05) }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: drop-shadow(0 3px 3px #14080E); }
+  }
+  @keyframes articleLeave {
+    0% { opacity: 1; transform: translateY(0) scale(1); filter: drop-shadow(0 3px 3px #14080E); }
+    10% { transform: scale(1.05, 1.075) }
+    100% { opacity: 0; transform: translateY(75%) scale(0.75, 1); filter: drop-shadow(0px 0px 0px transparent); }
+  }
+
+  @keyframes dialogEnter {
+    0% { opacity: 0; transform: translatex(75%) scale(0.75, 1); filter: drop-shadow(0px 0px 0px transparent); }
+    90% { transform: scale(1.025, 1.05) }
+    100% { opacity: 1; transform: translatex(0) scale(1); filter: drop-shadow(0 3px 3px #14080E); }
+  }
+  @keyframes dialogLeave {
+    0% { opacity: 1; transform: translatex(0) scale(1); filter: drop-shadow(0 3px 3px #14080E); }
+    10% { transform: scale(1.05, 1.075) }
+    100% { opacity: 0; transform: translatex(75%) scale(0.75, 1); filter: drop-shadow(0px 0px 0px transparent); }
+  }
+
+  @keyframes toastEnter {
+    0% { opacity: 0; transform: translateY(75%) scale(0.75, 1); filter: drop-shadow(0px 0px 0px transparent); }
+    90% { transform: scale(1.025, 1.05) }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: drop-shadow(0 3px 3px #14080E); }
+  }
+  @keyframes toastLeave {
+    0% { opacity: 1; transform: translateY(0) scale(1); filter: drop-shadow(0 3px 3px #14080E); }
+    10% { transform: scale(1.05, 1.075) }
+    100% { opacity: 0; transform: translateY(75%) scale(0.75, 1); filter: drop-shadow(0px 0px 0px transparent); }
+  }
+}
+
+* {
+  scrollbar-color: var(--color-secondary) transparent;
+  scrollbar-width: thin;
+}
+
+body {
+  color: var(--color-dark);
+  max-height: 100vh;
+  max-width: 100vw;
+  overflow: hidden;
+  background-color: var(--color-primary);
+}

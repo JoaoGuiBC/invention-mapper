@@ -1,0 +1,48 @@
+---
+import type { HTMLAttributes } from "astro/types"
+
+interface Props extends HTMLAttributes<"div"> {
+  leftText?: string
+  rightText?: string
+  id: string
+}
+
+const { leftText, rightText, id } = Astro.props
+---
+
+<div class="inline-flex items-center gap-2">
+  {
+    leftText && (
+      <label
+        for={id}
+        class="text-slate-600 text-sm tracking-tighter  leading-4 cursor-pointer whitespace-pre-wrap"
+      >
+        {leftText}
+      </label>
+    )
+  }
+
+  <div class="relative inline-block w-11 h-5">
+    <input
+      id={id}
+      type="checkbox"
+      class="peer appearance-none w-11 h-5 bg-detail-green rounded-full cursor-pointer transition-colors duration-300"
+    />
+    <label
+      for={id}
+      class="absolute top-0 left-0 w-5 h-5 bg-tertiary rounded-full border border-detail-green shadow-sm transition-transform duration-300 peer-checked:translate-x-6 cursor-pointer"
+    >
+    </label>
+  </div>
+
+  {
+    rightText && (
+      <label
+        for="switch-component-on"
+        class="text-slate-600 text-sm tracking-tighter  leading-4 cursor-pointer whitespace-pre-wrap"
+      >
+        {rightText}
+      </label>
+    )
+  }
+</div>

@@ -1,0 +1,49 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"input"> {
+  title: string;
+}
+
+const { title, id, ...rest } = Astro.props;
+---
+
+<input-container
+  id={`${id}-container`}
+  class="input-container relative flex flex-col h-fit items-start w-full mb-0 data-[errored=true]:mb-0.5 data-[errored=true]:[&>input]:border-error data-[errored=true]:[&>label]:text-error data-[errored=true]:[&>label]:-translate-y-3/4"
+>
+  <input
+    id={id}
+    class="block px-2.5 py-2 w-full text-md font-text text-lg text-dark bg-detail-beige rounded-lg border-2 border-detail-green appearance-none focus:outline-none focus:ring-0 focus:border-secondary peer"
+    placeholder=""
+    {...rest}
+  />
+  <label
+    for={id}
+    class="absolute text-sm font-text text-dark/50 bg-detail-beige rounded-full duration-300 transform -translate-y-5 scale-75 top-2 z-10 origin-[0] px-2 py-1 left-0 peer-focus:px-3 peer-focus:text-secondary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
+    >{title}</label
+  >
+  <p class="text-xs text-error font-medium ml-3 hidden"></p>
+</input-container>
+
+<script>
+  class InputContainer extends HTMLElement {
+    connectedCallback() {
+      /// CHECK IF INPUT STATE IS SET AS ERROR
+      const observer = new MutationObserver(() => {
+        if (!this.dataset.errorMessage) {
+          this.querySelector("p")?.classList.add("hidden");
+        } else {
+          const errorText = this.querySelector("p") as HTMLParagraphElement;
+
+          errorText.textContent = this.dataset.errorMessage;
+          errorText.classList.remove("hidden");
+        }
+      });
+
+      observer.observe(this, { attributes: true });
+    }
+  }
+
+  customElements.define("input-container", InputContainer);
+</script>
