@@ -1,34 +1,130 @@
+# Invention Mapper
 
-## Invention Mapper - server
+Sistema de mapeamento de invenções desenvolvido em Rust com API REST, integração com IA e armazenamento em PostgreSQL.
 
-Primeiramente, para rodar o servidor certifique-se de: 
+## 🛠️ Tecnologias Utilizadas
 
- - Ter [Rust](https://www.rust-lang.org/pt-BR) instalado na sua máquina
- - Ter um banco de dados Postgres (o repositório contém um arquivo [Docker Compose](https://docs.docker.com/compose/))
- - Ter uma conta na plataforma [Cloudinary](https://cloudinary.com)
- - Caso deseje usar a funcionalidade de coletar dados automaticamente a partir de um link da Wikipédia também será necessário ter [Ollama](https://ollama.com) instalado na sua máquina
- 
- Após isso, crie um arquivo .env na raiz do server, copie o conteúdo do arquivo .env.example e preencha as variáveis de ambiente.
- 
+### Backend
+- **Rust** - Linguagem principal
+- **Actix Web** - Framework web para APIs REST
+- **SeaORM** - ORM para PostgreSQL
+- **Tokio** - Runtime assíncrono
+- **Ollama** - Integração com modelos de IA locais
+- **Cloudinary** - Armazenamento de imagens
+- **Swagger/OpenAPI** - Documentação da API
 
-### Banco de dados
-Com o banco rodando e a variáveis de ambiente definidas, chegou a hora de executar as migrations do banco.
+### Banco de Dados
+- **PostgreSQL** - Banco de dados principal
+- **SeaORM Migration** - Sistema de migrações
 
-Este projeto utiliza [SeaORM](https://www.sea-ql.org/SeaORM/) para trabalhar com o banco de dados, abra o terminal e instale a CLI do ORM através do comando:
+### Infraestrutura
+- **Docker Compose** - Containerização do banco de dados
 
-    cargo install sea-orm-cli@1.1.0
+## 📋 Pré-requisitos
 
-Agora basta rodar o comando abaixo e o banco de dados estará configurado:
+- Rust (edição 2024)
+- Docker e Docker Compose
+- PostgreSQL (via Docker)
+- Ollama (para modelos de IA locais)
 
-    sea-orm-cli migrate up
+## 🚀 Configuração e Setup
 
-### Executando o servidor
-Para executar o servidor rode o comando:
+### 1. Clone o repositório
+```bash
+git clone <repository-url>
+cd invention-mapper/server
+```
 
-    cargo run
+### 2. Configure as variáveis de ambiente
+Crie um arquivo `.env` na raiz do projeto:
 
-Para gerar uma build de produção rode o comando:
+```env
+# Database
+DATABASE_URL=postgresql://docker:docker@localhost:5432/database
 
-    cargo build --release
+# Server
+SERVER_HOST=localhost
+SERVER_PORT=3333
 
-Caso deseje uma descrição das rotas do servidor, com ele rodando faça uma requisição para */openapi.json* para receber um arquivo de formatação openapi
+# Ollama AI
+OLLAMA_PROMPT=your_ai_prompt_here
+OLLAMA_MODEL=your_model_name
+
+# Cloudinary
+CLOUDINARY_API_SECRET=your_cloudinary_secret
+CLOUDINARY_API_KEY=your_cloudinary_key
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_IMAGES_FOLDER=images
+```
+
+### 3. Inicie o banco de dados
+```bash
+docker-compose up -d
+```
+
+### 4. Execute as migrações
+```bash
+cd migration
+cargo run
+cd ..
+```
+
+### 5. Execute o servidor
+```bash
+cargo run
+```
+
+O servidor estará disponível em `http://localhost:3333`
+
+## 📚 Documentação da API
+
+A documentação Swagger está disponível em:
+- **OpenAPI JSON**: `http://localhost:3333/openapi.json`
+
+### 🔧 Endpoints Principais
+
+#### Criação de Invenções
+
+**1. Inserção Manual** - `POST /api/invention`
+- O usuário fornece todos os dados da invenção
+- Campos obrigatórios: `file` (imagem), `name`, `text`, `external_link`, `lat`, `lon`
+- Formato: `multipart/form-data`
+
+**2. Inserção via Wikipedia** - `POST /api/invention/wiki`
+- O usuário fornece apenas o link da Wikipedia e coordenadas
+- A IA extrai automaticamente os dados da página
+- Campos obrigatórios: `wikipedia_link`, `lat`, `lon`
+- Formato: `multipart/form-data`
+
+#### Outros Endpoints
+- `GET /api/invention` - Lista todas as invenções
+- `PUT /api/invention` - Atualiza uma invenção
+- `DELETE /api/invention/{id}` - Remove uma invenção
+
+## 🏗️ Estrutura do Projeto
+
+```
+server/
+├── src/
+│   ├── handlers/          # Handlers das requisições HTTP
+│   ├── models/           # Modelos de dados
+│   ├── routes/           # Definição das rotas
+│   ├── env.rs            # Configuração de variáveis de ambiente
+│   └── main.rs           # Ponto de entrada da aplicação
+├── entity/               # Entidades do banco de dados
+├── migration/            # Migrações do banco de dados
+├── Cargo.toml           # Dependências do projeto
+└── docker-compose.yml   # Configuração do banco de dados
+```
+
+## 🔧 Padrões de Projeto
+
+- **Arquitetura em Camadas**: Separação clara entre handlers, models e routes
+- **Injeção de Dependência**: Banco de dados injetado via `web::Data`
+- **CORS Configurado**: API acessível de diferentes origens
+- **Documentação Automática**: Swagger/OpenAPI integrado
+- **Migrações Automatizadas**: Sistema de versionamento do banco de dados
+
+## 📝 Licença
+
+Este projeto está sob a licença [inserir licença]. 

@@ -1,21 +1,54 @@
+# Invention Mapper
 
-## Invention Mapper - web
+Frontend do projeto **Invention Mapper**, desenvolvido com [Astro](https://astro.build/) e focado em visualização e cadastro de invenções.
 
-Primeiramente, para rodar a aplicação web certifique-se de: 
+## Principais Tecnologias
 
- - Ter [NodeJS](https://nodejs.org/pt) instalado na sua máquina
- - Estar com o server rodando
- 
- Após isso, crie um arquivo .env na raiz do server, copie o conteúdo do arquivo .env.example e preencha as variáveis de ambiente.
+- **Astro**: Framework principal para construção de interfaces.
+- **TailwindCSS**: Utilizado para estilização via classes utilitárias.
+- **Leaflet**: Biblioteca para mapas interativos.
+- **Nanostores**: Gerenciamento de estado reativo e persistente.
+- **Ky**: Cliente HTTP minimalista para requisições à API.
+- **Astro Cloudinary**: Otimização e manipulação de imagens.
+- **TanStack Query**: Gerenciamento de cache e requisições assíncronas.
+- **TypeScript**: Tipagem estática e segurança no desenvolvimento.
 
-### Executando a aplicação
-Para baixar as dependências rode o comando:
+## Padrões de Projeto
 
-    npm install
+- **Componentização**: Componentes reutilizáveis em `src/components`.
+- **Store centralizada**: Estado global com Nanostores em `src/store.ts`.
+- **Rotas e ações separadas**: Lógica de API em `src/http/routes`.
+- **Configuração de caminhos (alias)**: Definidos em `tsconfig.json` para facilitar imports.
 
-Para executar a aplicação rode o comando:
+## Configuração e Setup
 
-    npm dev
+1. **Pré-requisitos**:
+   - Node.js 18+
+   - pnpm (ou npm/yarn)
 
-Comece a utilizar a aplicação clicando em qualquer lugar do mapa.
+2. **Instalação**:
+   ```bash
+   pnpm install
+   ```
 
+3. **Variáveis de ambiente**:
+   - Configure as variáveis no arquivo `.env` conforme o schema do `astro.config.mjs`:
+     - `API_URL` (padrão: http://localhost:3333/api)
+     - `CLOUDINARY_API_SECRET`, `CLOUDINARY_API_KEY`, `PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_IMAGES_FOLDER` (opcional)
+
+4. **Rodando em modo desenvolvimento**:
+   ```bash
+   pnpm dev
+   ```
+
+5. **Build de produção**:
+   ```bash
+   pnpm build
+   pnpm preview
+   ```
+
+## Scripts Úteis
+
+- `pnpm dev` — Inicia o servidor de desenvolvimento.
+- `pnpm build` — Gera o build de produção.
+- `pnpm preview` — Visualiza o build localmente. 
